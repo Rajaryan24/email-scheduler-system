@@ -1,0 +1,71 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  name             String?
+  avatar           String?
+  googleId         String?          @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  slackConnection  SlackConnection?
+  scheduledBatches ScheduleBatch[]
+}
+
+model SlackConnection {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  webhookUrl  String?  @db.Text
+  accessToken String?  @db.Text
+  channelName String?
+  isConnected Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ScheduleBatch {
+  id              String     @id @default(uuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderEmail     String
+  subject         String
+  body            String     @db.Text
+  startTime       DateTime
+  delaySeconds    Int        @default(2)
+  hourlyLimit     Int        @default(50)
+  totalRecipients Int
+  status          String     @default("SCHEDULED")
+  createdAt       DateTime   @default(now())
+  emails          EmailJob[]
+}
+
+model EmailJob {
+  id                 String        @id @default(uuid())
+  batchId            String
+  batch              ScheduleBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  senderEmail        String
+  recipient          String
+  subject            String
+  body               String        @db.Text
+  scheduledFor       DateTime
+  sentAt             DateTime?
+  status             String        @default("SCHEDULED")
+  bullJobId          String?       @unique
+  etherealPreviewUrl String?       @db.Text
+  errorMessage       String?       @db.Text
+  rescheduleCount    Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([recipient])
+  @@index([status])
+  @@index([scheduledFor])
+}

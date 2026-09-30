@@ -166,4 +166,3 @@ graph TD
 | **Search & filter** | Debounced Elasticsearch search box plus status filter dropdown (Scheduled / Sent / Rate limited / Failed) and manual refresh. |
 | **Email detail** | Full email view: sender block, timestamp, body paragraphs, and "Preview on Ethereal" link for sent mail. |
 | **Compose** | Full-page composer: sender select, recipients (with lead-file attach), subject, delay-between-emails and hourly-limit inputs, reply body with formatting toolbar, and a **Send Later** popover (custom date-time picker + tomorrow presets) that schedules through `POST /api/emails/schedule`. |
-
