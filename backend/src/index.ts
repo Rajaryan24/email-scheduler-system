@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
@@ -52,6 +54,18 @@ async function main() {
       timestamp: new Date().toISOString()
     });
   });
+
+  // Serve the built frontend (single-service production deployment)
+  const clientDist = path.resolve(__dirname, '../../frontend/dist');
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    app.use((req, res, next) => {
+      if (req.method !== 'GET') return next();
+      if (req.path.startsWith('/api') || req.path.startsWith('/admin') || req.path === '/health') return next();
+      res.sendFile(path.join(clientDist, 'index.html'));
+    });
+    console.log('🖥 Serving frontend build from', clientDist);
+  }
 
   // Run server restart job sync routine
   await syncPendingJobsOnRestart();
